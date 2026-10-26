@@ -115,3 +115,31 @@ app/src/main/java/com/autoswipe/helper/
 ## License
 
 MIT
+
+---
+
+## 关于本仓库（fork）
+
+- **上游项目**：https://github.com/zabio/AutoSwipeHelper —— 原作者 zabio，MIT 许可
+- 本仓库在上游基础上做了少量修正，**保留原作者版权与 MIT 许可**，未改变用途
+- 与上游的差异见下方
+
+## 相对上游的改动（2026-10-26）
+
+**1. 修正广告判定关键词（`AccessibilityConfig.kt`）**
+
+原版关键词表里混入了 `"短剧"`、`"滑动"`、`"下一集"`、`"播放中"` 以及裸的 `"ad"`。而 `detectAdFinished()` 用的是 `contains` 匹配，只要页面出现「短剧」二字就判定为广告结束并立即上滑——红果正常播放页满屏都是这两个字，导致持续误触。
+
+现已删除全部泛化词，只保留「上滑继续观看短剧」这类**只在广告结束那一帧才出现**的完整短语；`"ad"` 一并移除（它是 `load` / `download` 的子串）。
+
+**2. 收紧判定逻辑（`NodeDetector.kt`）**
+
+通用短语不再单独命中即返回，必须同时具备广告标识（广告 / 推广 / 赞助）或倒计时结束；同时移除「页面出现 `0s` 就判定广告结束」的分支。
+
+**3. 无障碍服务限定目标应用（`AutoSwipeService.kt`）**
+
+原版不设置 `packageNames`，等于在系统层面监听全机所有应用。现改为在 `onServiceConnected` 时从偏好设置动态下发目标包名，并新增 `refreshPackageFilter()` 供目标列表变化后刷新。
+
+**4. 修正包名注释**
+
+红果短剧的真实包名是 `com.phoenix.read`；`com.redfruit.drama` 并不存在（保留在集合内无副作用）。

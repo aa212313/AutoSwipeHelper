@@ -65,12 +65,25 @@ class AutoSwipeService : AccessibilityService() {
                     AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
                     AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
             notificationTimeout = 100
+            // 关键：在系统层面只下发目标应用的窗口事件。
+            // 之前这里为空，等于监听全机所有 App，既费电又多读屏。
+            packageNames = preferencesManager.getTargetPackages().toTypedArray()
         }
         serviceInfo = info
 
         isServiceEnabled = true
         notificationHelper.showServiceRunningNotification()
-        LogUtil.d("AutoSwipeService connected")
+        LogUtil.d("AutoSwipeService connected, filtering packages=${preferencesManager.getTargetPackages()}")
+    }
+
+    /**
+     * 目标应用列表变化后重新下发过滤规则（系统层面）
+     */
+    fun refreshPackageFilter() {
+        val current = serviceInfo ?: return
+        current.packageNames = preferencesManager.getTargetPackages().toTypedArray()
+        serviceInfo = current
+        LogUtil.d("AutoSwipeService package filter refreshed: ${current.packageNames?.joinToString()}")
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -167,6 +180,7 @@ class AutoSwipeService : AccessibilityService() {
     fun resume() {
         isUserPaused = false
         adDetector.reset()
+        refreshPackageFilter()
         notificationHelper.showServiceRunningNotification()
         LogUtil.d("AutoSwipeService resumed by user")
     }

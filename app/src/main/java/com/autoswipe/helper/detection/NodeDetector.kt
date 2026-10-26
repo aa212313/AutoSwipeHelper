@@ -23,38 +23,29 @@ class NodeDetector {
         val allVisibleTexts = collectVisibleTexts(rootNode)
         val fullPageText = allVisibleTexts.joinToString(" ")
 
-        // 红果短剧专属关键词检测
+        // 第一级：红果专属短语。这些短语本身就只在广告结束那一帧出现，命中即可判定
         for (pattern in AccessibilityConfig.HONGGUO_AD_FINISHED_PATTERNS) {
             if (fullPageText.contains(pattern)) {
                 return true
             }
         }
 
-        // 通用广告结束检测
-        for (pattern in AccessibilityConfig.GENERAL_AD_FINISHED_PATTERNS) {
-            if (fullPageText.contains(pattern)) {
-                // 同时需要确认在广告场景中
-                val hasAdIndicator = AccessibilityConfig.AD_LABEL_PATTERNS.any {
-                    fullPageText.contains(it)
-                }
-                if (hasAdIndicator) return true
-
-                // 或者检测到倒计时数字结束（有数字0且附近有滑动提示）
-                val hasCountdownEnd = AccessibilityConfig.COUNTDOWN_END_PATTERNS.any {
-                    fullPageText.contains(it)
-                }
-                if (hasCountdownEnd) return true
-            }
+        // 第二级：通用短语必须配上「广告标识」或「倒计时结束」才算数
+        // 之前的问题出在这里：通用短语单独命中就返回 true，导致剧集正常播放时也被判定成广告结束
+        val hasGeneralHint = AccessibilityConfig.GENERAL_AD_FINISHED_PATTERNS.any {
+            fullPageText.contains(it)
         }
+        if (!hasGeneralHint) return false
 
-        // 倒计时结束检测
-        for (pattern in AccessibilityConfig.COUNTDOWN_END_PATTERNS) {
-            if (fullPageText.contains(pattern)) {
-                return true
-            }
+        val hasAdIndicator = AccessibilityConfig.AD_LABEL_PATTERNS.any {
+            fullPageText.contains(it, ignoreCase = true)
         }
+        if (hasAdIndicator) return true
 
-        return false
+        val hasCountdownEnd = AccessibilityConfig.COUNTDOWN_END_PATTERNS.any {
+            fullPageText.contains(it)
+        }
+        return hasCountdownEnd
     }
 
     /**
