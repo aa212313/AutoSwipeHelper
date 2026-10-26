@@ -124,6 +124,15 @@ MIT
 - 本仓库在上游基础上做了少量修正，**保留原作者版权与 MIT 许可**，未改变用途
 - 与上游的差异见下方
 
+## 下载
+
+- GitHub Releases：https://github.com/aa212313/AutoSwipeHelper/releases
+- Gitee 发行版：https://gitee.com/ccmmdd121/AutoSwipeHelper/releases
+- 包名 `com.autoswipe.helper`，当前版本 **1.1.0**（versionCode 2），要求 Android 8.0+（API 26）
+
+> 本仓库的签名与上游作者 v1.0 不同，**覆盖安装前需先卸载旧版**。
+
+
 ## 相对上游的改动（2026-10-26）
 
 **1. 修正广告判定关键词（`AccessibilityConfig.kt`）**

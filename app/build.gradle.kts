@@ -1,7 +1,15 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+// 签名信息只从环境变量读取，不落盘、不进仓库；缺失时自动跳过签名配置
+val ksPath = System.getenv("AUTOSWIPE_KEYSTORE")
+val ksPass = System.getenv("AUTOSWIPE_KEYSTORE_PASSWORD")
+val keyAliasEnv = System.getenv("AUTOSWIPE_KEY_ALIAS")
+val keyPass = System.getenv("AUTOSWIPE_KEY_PASSWORD")
 
 android {
     namespace = "com.autoswipe.helper"
@@ -11,10 +19,21 @@ android {
         applicationId = "com.autoswipe.helper"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (ksPath != null) {
+            create("release") {
+                storeFile = file(ksPath)
+                storePassword = ksPass
+                keyAlias = keyAliasEnv
+                keyPassword = keyPass
+            }
+        }
     }
 
     buildTypes {
@@ -25,6 +44,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // 有签名配置才启用，否则产出未签名包
+            signingConfig = signingConfigs.findByName("release")
         }
         debug {
             isMinifyEnabled = false
